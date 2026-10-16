@@ -10,6 +10,8 @@ on:
       - SHA256SUMS
       - patches/**
       - scripts/build-q3.sh
+      - scripts/container-entrypoint.sh
+      - scripts/download-q3.sh
       - scripts/q3-env.sh
       - scripts/serve-q3.sh
   workflow_dispatch:

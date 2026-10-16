@@ -11,8 +11,8 @@ build has not been benchmarked, and the measured builds used CUDA 13.3.
 - Linux x86-64 host with an NVIDIA driver that supports CUDA 13.4.
 - The NVIDIA Container Toolkit, with CDI configured for Podman
   (`nvidia-ctk cdi generate`) or the runtime configured for Docker.
-- The model and chat template on the host, downloaded with
-  `./scripts/download-q3.sh` into `models/`.
+- About 11 GB of disk for the model and chat template. The container downloads
+  them on first run, or you can mount a `models/` directory you already have.
 
 ## Build
 
@@ -68,10 +68,25 @@ can connect. Publishing on `127.0.0.1` keeps the API reachable from this machine
 only, as a local `serve-q3.sh` run is.
 
 ```bash
-podman run --rm --device nvidia.com/gpu=all -p 127.0.0.1:8080:8080 -v "$PWD/models:/opt/routeweaver/models:ro,Z" routeweaver-q3
+podman run --rm --device nvidia.com/gpu=all -p 127.0.0.1:8080:8080 -v routeweaver-models:/opt/routeweaver/models routeweaver-q3
 ```
 
 With Docker, use `--gpus all` instead of `--device nvidia.com/gpu=all`.
+
+On the first run the container downloads the pinned model and chat template,
+about 10.6 GB, into the `routeweaver-models` volume with
+`scripts/download-q3.sh`. The download resumes if interrupted and checks each
+file's SHA-256. Later runs reuse the volume and start serving straight away.
+
+If you already have the files from `./scripts/download-q3.sh`, mount that
+directory read-only instead:
+
+```bash
+podman run --rm --device nvidia.com/gpu=all -p 127.0.0.1:8080:8080 -v "$PWD/models:/opt/routeweaver/models:ro,Z" routeweaver-q3
+```
+
+The container stops with an error if the files are missing and the directory
+is read-only.
 
 The API is then `http://127.0.0.1:8080/v1`. To use another host port, change
 only the first number, for example `-p 127.0.0.1:8094:8080`. If you set
@@ -80,13 +95,22 @@ machines on your network should reach the server, because the API has no
 authentication.
 
 The launcher's environment settings pass through with `-e`, for example
-`-e CONTEXT=131072` or `-e THREADS=8`. For vision with the candidate variant,
-download the projector with `./scripts/download-q3.sh --vision-only` and add
-`-e MMPROJ_PATH=/opt/routeweaver/models/mmproj-F16.gguf`. Pass `--print-config`
-after the image name to print the server command line without starting it.
+`-e CONTEXT=131072` or `-e THREADS=8`. Pass `--print-config` after the image
+name to print the server command line without starting it.
+
+For vision with the candidate variant, download the projector into the same
+volume, then add `-e MMPROJ_PATH=/opt/routeweaver/models/mmproj-F16.gguf`:
+
+```bash
+podman run --rm --entrypoint /opt/routeweaver/scripts/download-q3.sh -v routeweaver-models:/opt/routeweaver/models routeweaver-q3 --vision-only
+```
+
+To open a shell in the image, for example to inspect the volume, replace the
+entrypoint with `--entrypoint bash -it`, or use `podman exec -it <container> bash`
+while the server is running.
 
 The server checks the model's SHA-256 on every start, so allow some time
 before it begins loading.
 
-The image holds only the server and launcher. Run `scripts/check-q3.sh`,
-benchmarks and `routeweaver setup` from a normal checkout.
+The image holds only the server, launcher and download script. Run
+`scripts/check-q3.sh`, benchmarks and `routeweaver setup` from a normal checkout.

@@ -33,16 +33,19 @@ RUN mkdir /tmp/cuda-stub \
 
 FROM ${CUDA_RUNTIME}
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libgomp1 libssl3t64 \
+    && apt-get install -y --no-install-recommends ca-certificates curl libgomp1 libssl3t64 \
     && rm -rf /var/lib/apt/lists/*
 ARG Q3_VARIANT=candidate
 # Listen on the container's interfaces; publish the port to choose who can reach it.
 ENV Q3_VARIANT=${Q3_VARIANT} CUDA_TOOLKIT_ROOT=/usr/local/cuda BIND_ADDRESS=0.0.0.0
 WORKDIR /opt/routeweaver
-COPY --from=build /opt/routeweaver/scripts/q3-env.sh /opt/routeweaver/scripts/serve-q3.sh scripts/
+COPY --from=build /opt/routeweaver/scripts/q3-env.sh /opt/routeweaver/scripts/serve-q3.sh \
+    /opt/routeweaver/scripts/download-q3.sh /opt/routeweaver/scripts/container-entrypoint.sh scripts/
 COPY --from=build /opt/routeweaver/build/q3-${Q3_VARIANT}/bin build/q3-${Q3_VARIANT}/bin
-# Mount the directory populated by scripts/download-q3.sh here, read-only.
+# Owned by ubuntu so a new named volume here is writable for the first-run download.
+# A directory already populated by scripts/download-q3.sh can be mounted read-only instead.
+RUN install -d -o ubuntu -g ubuntu /opt/routeweaver/models
 VOLUME /opt/routeweaver/models
 USER ubuntu
 EXPOSE 8080
-ENTRYPOINT ["/opt/routeweaver/scripts/serve-q3.sh"]
+ENTRYPOINT ["/opt/routeweaver/scripts/container-entrypoint.sh"]
