@@ -16,8 +16,9 @@ build has not been benchmarked, and the measured builds used CUDA 13.3.
 
 ## Build
 
-Build on the machine that will serve. `GGML_NATIVE` stays on, so the CPU
-kernels target the CPU that runs the build, as in every measured build.
+Build on the machine that will serve. By default the CPU kernels target the
+CPU that runs the build, as in every measured build. To build somewhere else,
+set `CPU_ARCH` to the serving CPU's GCC `-march` value.
 
 ```bash
 podman build -t routeweaver-q3 .
@@ -30,6 +31,7 @@ Build arguments:
 | `Q3_VARIANT` | `candidate` | `candidate`, `baseline` or `fast`, as for `build-q3.sh`. |
 | `CUDA_ARCHITECTURES` | `86` | GPU compute capability. No GPU is visible during a build, so `native` does not work. |
 | `BUILD_JOBS` | `1` | Parallel compile jobs. Raise it if you have the RAM. |
+| `CPU_ARCH` | `native` | `native` targets the build machine's CPU. Otherwise a GCC `-march` value such as `raptorlake`, for the CPU that will serve. |
 
 For example, the Fast variant with four jobs:
 

@@ -84,6 +84,8 @@ queued-prefetch and cache-safe overlays. Every changed source file has a checksu
 Existing mismatched source directories are rejected, not overwritten.
 `CUDA_ARCHITECTURES` defaults to `native`; use `86` to reproduce the RTX 3060
 target. Other GPU builds are [experimental](hardware.md).
+`CPU_ARCH` also defaults to `native`. Set it to a GCC `-march` value, such as
+`raptorlake`, only when building for a different CPU than the build machine.
 
 To build and run the server in a container instead, see
 [the container guide](container.md).

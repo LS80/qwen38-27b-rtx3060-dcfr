@@ -17,6 +17,17 @@ for tool in curl tar patch cmake ninja sha256sum "${CC:-cc}" "${CXX:-c++}"; do
     command -v "$tool" >/dev/null || { echo "Missing prerequisite: $tool" >&2; exit 2; }
 done
 [[ "${BUILD_JOBS:-1}" =~ ^[1-9][0-9]*$ ]] || { echo 'BUILD_JOBS must be positive.' >&2; exit 2; }
+# native tunes for the build machine; any other value is passed to -march for builds made elsewhere.
+cpu_arch="${CPU_ARCH:-native}"
+[[ "$cpu_arch" =~ ^[a-z0-9][a-z0-9.-]*$ ]] || { echo 'CPU_ARCH must be native or a compiler -march value.' >&2; exit 2; }
+build_id="c060ca974c77-routeweaver-q3-$variant"
+if [[ "$cpu_arch" == native ]]; then
+    # Drop any -march cached by an earlier CPU_ARCH build in the same tree.
+    cpu_args=(-DGGML_NATIVE=ON -UCMAKE_C_FLAGS -UCMAKE_CXX_FLAGS)
+else
+    cpu_args=(-DGGML_NATIVE=OFF -DCMAKE_C_FLAGS="-march=$cpu_arch" -DCMAKE_CXX_FLAGS="-march=$cpu_arch")
+    build_id+="-$cpu_arch"
+fi
 cd "$root"
 sha256sum --check --status SHA256SUMS
 if [[ ! -d "$source_dir" ]]; then
@@ -46,8 +57,8 @@ cmake -S "$source_dir" -B "$build_dir" -G Ninja \
     -DCMAKE_CUDA_COMPILER="$cuda_root/bin/nvcc" -DCMAKE_CUDA_HOST_COMPILER="${CXX:-c++}" \
     -DCMAKE_CUDA_ARCHITECTURES="${CUDA_ARCHITECTURES:-native}" -DCUDAToolkit_ROOT="$cuda_root" \
     -DCMAKE_BUILD_RPATH="$cuda_root/lib64" -DCMAKE_DISABLE_FIND_PACKAGE_Git=TRUE \
-    -DLLAMA_BUILD_COMMIT="c060ca974c77-routeweaver-q3-$variant" -DLLAMA_BUILD_NUMBER=1 \
+    -DLLAMA_BUILD_COMMIT="$build_id" -DLLAMA_BUILD_NUMBER=1 \
     -DLLAMA_BUILD_UI=OFF -DLLAMA_USE_PREBUILT_UI=OFF -DLLAMA_CURL=OFF \
-    -DGGML_CUDA=ON -DGGML_NATIVE=ON
+    -DGGML_CUDA=ON "${cpu_args[@]}"
 cmake --build "$build_dir" --target llama-server --parallel "${BUILD_JOBS:-1}"
 "$build_dir/bin/llama-server" --version
