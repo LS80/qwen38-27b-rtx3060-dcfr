@@ -150,6 +150,7 @@ prefetch gains depend on how much work crosses the CPU/GPU boundary.
 
 - [Q3 quickstart](docs/q3-quickstart.md): download, build, serve, vision and regression tests.
 - [Automatic setup](docs/automatic-setup.md): hardware detection, bounded tuning, profiles and rollback.
+- [Container build](docs/container.md): build and run the Q3 server with Podman or Docker.
 - [Current results](docs/q3-cache-safe.md): repeat measurements and what they do not establish.
 - [Q3 Fast experiment](docs/q3-fast.md): optional new runtime, source export and October 8 results.
 - [Architecture](docs/architecture.md): checkpoints, memory placement and transfer scheduling.

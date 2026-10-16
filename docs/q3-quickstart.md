@@ -85,6 +85,9 @@ Existing mismatched source directories are rejected, not overwritten.
 `CUDA_ARCHITECTURES` defaults to `native`; use `86` to reproduce the RTX 3060
 target. Other GPU builds are [experimental](hardware.md).
 
+To build and run the server in a container instead, see
+[the container guide](container.md).
+
 ## Serve at 96K or 128K
 
 ```bash
