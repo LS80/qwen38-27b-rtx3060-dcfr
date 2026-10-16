@@ -36,12 +36,13 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends libgomp1 libssl3t64 \
     && rm -rf /var/lib/apt/lists/*
 ARG Q3_VARIANT=candidate
-ENV Q3_VARIANT=${Q3_VARIANT} CUDA_TOOLKIT_ROOT=/usr/local/cuda
+# Listen on the container's interfaces; publish the port to choose who can reach it.
+ENV Q3_VARIANT=${Q3_VARIANT} CUDA_TOOLKIT_ROOT=/usr/local/cuda BIND_ADDRESS=0.0.0.0
 WORKDIR /opt/routeweaver
 COPY --from=build /opt/routeweaver/scripts/q3-env.sh /opt/routeweaver/scripts/serve-q3.sh scripts/
 COPY --from=build /opt/routeweaver/build/q3-${Q3_VARIANT}/bin build/q3-${Q3_VARIANT}/bin
 # Mount the directory populated by scripts/download-q3.sh here, read-only.
 VOLUME /opt/routeweaver/models
 USER ubuntu
-# serve-q3.sh binds to 127.0.0.1, so run with host networking to reach it.
+EXPOSE 8080
 ENTRYPOINT ["/opt/routeweaver/scripts/serve-q3.sh"]

@@ -62,17 +62,25 @@ their speed.
 
 ## Run
 
-Stop other GPU model servers first. The launcher binds to `127.0.0.1`, so the
-container uses host networking to stay reachable on the host's loopback only.
+Stop other GPU model servers first. Inside the container the launcher listens
+on all interfaces (`BIND_ADDRESS=0.0.0.0`), and the published port decides who
+can connect. Publishing on `127.0.0.1` keeps the API reachable from this machine
+only, as a local `serve-q3.sh` run is.
 
 ```bash
-podman run --rm --device nvidia.com/gpu=all --network host -v "$PWD/models:/opt/routeweaver/models:ro,Z" routeweaver-q3
+podman run --rm --device nvidia.com/gpu=all -p 127.0.0.1:8080:8080 -v "$PWD/models:/opt/routeweaver/models:ro,Z" routeweaver-q3
 ```
 
 With Docker, use `--gpus all` instead of `--device nvidia.com/gpu=all`.
 
+The API is then `http://127.0.0.1:8080/v1`. To use another host port, change
+only the first number, for example `-p 127.0.0.1:8094:8080`. If you set
+`-e PORT`, publish that container port instead. Use `-p 8080:8080` only if other
+machines on your network should reach the server, because the API has no
+authentication.
+
 The launcher's environment settings pass through with `-e`, for example
-`-e CONTEXT=131072` or `-e PORT=8081`. For vision with the candidate variant,
+`-e CONTEXT=131072` or `-e THREADS=8`. For vision with the candidate variant,
 download the projector with `./scripts/download-q3.sh --vision-only` and add
 `-e MMPROJ_PATH=/opt/routeweaver/models/mmproj-F16.gguf`. Pass `--print-config`
 after the image name to print the server command line without starting it.
