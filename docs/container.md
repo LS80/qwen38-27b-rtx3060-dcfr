@@ -39,6 +39,27 @@ For example, the Fast variant with four jobs:
 podman build -t routeweaver-q3-fast --build-arg Q3_VARIANT=fast --build-arg BUILD_JOBS=4 .
 ```
 
+## Published images
+
+[`.github/workflows/container-image.yml`](../.github/workflows/container-image.yml)
+builds `candidate` and `fast` images on GitHub Actions and publishes them to
+`ghcr.io/<owner>/qwen38-27b-rtx3060-dcfr`. They target one machine rather than
+the runner: an i5-14500 (`CPU_ARCH=raptorlake`, which also suits Alder Lake) with
+an RTX 3060 (`CUDA_ARCHITECTURES=86`). On a CPU without AVX-VNNI they can stop
+with an illegal-instruction error, so build locally instead.
+
+Tags are `<ref>-<variant>-raptorlake-sm86`, where `<ref>` is the branch, the
+version without its `v` prefix, `sha-<commit>`, or `latest` for the default branch.
+For example:
+
+```bash
+podman pull ghcr.io/<owner>/qwen38-27b-rtx3060-dcfr:latest-candidate-raptorlake-sm86
+```
+
+These builds have not been benchmarked. Compare them with a native build using
+the [benchmark steps](q3-quickstart.md#validate-and-benchmark) before relying on
+their speed.
+
 ## Run
 
 Stop other GPU model servers first. The launcher binds to `127.0.0.1`, so the
