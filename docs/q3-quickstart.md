@@ -134,8 +134,10 @@ CONTEXT=131072 ./scripts/serve-q3.sh --print-config
 
 Supported overrides: `MODEL_PATH`, `CHAT_TEMPLATE_PATH`, `PORT`, `THREADS`,
 `HOST_FFN_BLOCKS`, `MTP_DEPTH`, `MAX_OUTPUT_TOKENS`, `MMPROJ_PATH`,
-`SPECULATION=mtp|none`, `BATCH_SIZE`, `UBATCH_SIZE`.
+`SPECULATION=mtp|none`, `BATCH_SIZE`, `UBATCH_SIZE`, `BIND_ADDRESS`.
 Batch overrides must satisfy `32 <= UBATCH_SIZE <= BATCH_SIZE <= 512`.
+`BIND_ADDRESS` defaults to `127.0.0.1`. Only widen it, for example to `0.0.0.0`,
+when something else limits who can connect, such as a container's published port.
 `SPECULATION=none` selects real plain decode; it does not merely lower MTP depth.
 The model/template hashes still have to match. More host blocks can reduce
 weight residency; fewer can improve speed if they fit. Nondefault placement,

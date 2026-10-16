@@ -19,6 +19,9 @@ esac
 host_blocks="${HOST_FFN_BLOCKS:-$default_blocks}"
 threads="${THREADS:-6}"
 port="${PORT:-8080}"
+# Loopback by default; containers widen it and publish the port instead.
+bind_address="${BIND_ADDRESS:-127.0.0.1}"
+[[ "$bind_address" =~ ^[0-9A-Fa-f.:]+$ && ${#bind_address} -le 45 ]] || { echo 'BIND_ADDRESS must be an IPv4 or IPv6 address.' >&2; return 2; }
 depth="${MTP_DEPTH:-4}"
 speculation="${SPECULATION:-mtp}"
 case "$speculation" in mtp|none) ;; *) echo 'SPECULATION must be mtp or none.' >&2; return 2 ;; esac

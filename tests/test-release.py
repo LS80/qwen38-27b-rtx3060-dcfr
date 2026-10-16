@@ -77,12 +77,21 @@ class ReleaseTests(unittest.TestCase):
         self.assertNotIn('--no-mmproj', args)
         self.assertIn('--no-mmproj-offload', args)
 
+    def test_bind_address(self):
+        for address in ['0.0.0.0', '::', '192.168.1.20']:
+            with self.subTest(address=address):
+                result = self.launch(BIND_ADDRESS=address)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                args = shlex.split(result.stdout)
+                self.assertEqual(args[args.index('--host')+1], address)
+
     def test_invalid_profiles(self):
         for settings in [{'CONTEXT':'32768'}, {'CONTEXT':'131073'}, {'HOST_FFN_BLOCKS':'65'},
                          {'THREADS':'0'}, {'PORT':'65536'}, {'MTP_DEPTH':'11'}, {'MAX_OUTPUT_TOKENS':'131072'},
                          {'HOST_FFN_BLOCKS':'08'}, {'Q3_VARIANT':'unknown'}, {'THREADS':'1; false'},
                          {'Q3_VARIANT':'fast','CONTEXT':'98304'},
-                         {'Q3_VARIANT':'fast','MMPROJ_PATH':'projector.gguf'}]:
+                         {'Q3_VARIANT':'fast','MMPROJ_PATH':'projector.gguf'},
+                         {'BIND_ADDRESS':'example.com'}, {'BIND_ADDRESS':'0.0.0.0 --verbose'}]:
             with self.subTest(settings=settings):
                 self.assertNotEqual(self.launch(**settings).returncode, 0)
 

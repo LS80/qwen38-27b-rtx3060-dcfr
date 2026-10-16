@@ -3,7 +3,7 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/q3-env.sh"
 alias="routeweaver-q3-$context"
 [[ "$variant" != fast ]] || alias="routeweaver-q3-fast-$context"
-args=(-m "$model" --alias "$alias" --host 127.0.0.1 --port "$port"
+args=(-m "$model" --alias "$alias" --host "$bind_address" --port "$port"
     --parallel 1 --ctx-size "$context" --ctx-checkpoints 4 --load-mode none
     --n-gpu-layers all --fit off --device CUDA0
     --cache-type-k q4_0 --cache-type-v q4_0
